@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Conway's Game of Life</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                background: #313131;
+                color: bisque;
+                font-family: sans-serif;
+                margin: 0;
+                padding: 10px;
+            }
+            .block {
+                margin: auto;
+                max-width: 500px;
+                background-color: #eee;
+                display: flex;
+                flex-wrap: wrap;
+                aspect-ratio: 1 / 1;
+            }
+            .cell {
+                border: 1px solid #000;
+                height: 10%;
+                width: 10%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background-color 0.3s;
+                cursor: pointer;
+            }
+            .cell:hover {
+                background-color: #faa;
+            }
+            .alive {
+                background-color: #900;
+            }
+            .alive:hover {
+                background-color: #700;
+            }
+            .next {
+                color: bisque;
+                text-align: center;
+                width: 100%;
+                max-width: 400px;
+                font-size: 26px;
+                padding: 10px;
+                cursor: pointer;
+                background-color: transparent;
+                border: 1px solid bisque;
+                margin: 20px auto;
+                transition: background-color 0.3s;
+                display: block;
+            }
+            .next:hover {
+                background-color: #444;
+            }
+            .clear {
+                background-color: #900;
+                color: white;
+                padding: 5px;
+                cursor: pointer;
+                width: 100px;
+                border: none;
+                transition: background-color 0.3s;
+                display: block;
+                margin: 0 auto;
+            }
+            .clear:hover {
+                background-color: #700;
+            }
+            p {
+                font-size: 18px;
+                text-align: center;
+            }
+            .title {
+                text-align: center;
+                font-size: 30px;
+                text-decoration: none;
+                transition: color 0.3s;
+                width: 100%;
+                display: block;
+            }
+            .title:visited {
+                color: inherit;
+            }
+            .title:hover {
+                color: beige;
+            }
+        </style>
+    </head>
+    <body>
+        <a
+            class="title"
+            href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"
+            >Conway's Game of Life</a
+        >
+        <button class="next">Click here to get next generation</button>
+        <div class="block"></div>
+        <p>Click on area to edit cells</p>
+        <button class="clear">Clear area</button>
+        <script>
+            const block = document.querySelector(".block");
+            const next = document.querySelector(".next");
+            const clear = document.querySelector(".clear");
+            next.onclick = () => {
+                lifeCycle();
+                renderArea();
+            };
+            clear.onclick = () => {
+                for (let i = 0; i < firstGeneration.length; i++) {
+                    for (let k = 0; k < firstGeneration[i].length; k++) {
+                        firstGeneration[i][k] = 0;
+                    }
+                }
+                editArea();
+            };
+            block.onclick = (e) => {
+                if (e.target.classList.contains("cell")) {
+                    let x = e.target.dataset.x;
+                    let y = e.target.dataset.y;
+                    if (firstGeneration[y][x] === 1) {
+                        firstGeneration[y][x] = 0;
+                    } else if (firstGeneration[y][x] === 0) {
+                        firstGeneration[y][x] = 1;
+                    }
+                    editArea();
+                }
+            };
+            const firstGeneration = [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ];
+
+            const secondGeneration = [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ];
+            function renderArea() {
+                let out = "";
+                for (let i = 0; i < secondGeneration.length; i++) {
+                    for (let k = 0; k < secondGeneration[i].length; k++) {
+                        out += `<div data-x=${k} data-y=${i} data-alive=${
+                            secondGeneration[i][k] ? true : false
+                        } class='cell ${
+                            secondGeneration[i][k] ? "alive" : ""
+                        }'></div>`;
+                    }
+                }
+                for (let i = 0; i < firstGeneration.length; i++) {
+                    for (let k = 0; k < firstGeneration[i].length; k++) {
+                        firstGeneration[k][i] = secondGeneration[k][i];
+                        secondGeneration[k][i] = 0;
+                    }
+                }
+                block.innerHTML = out;
+            }
+            function editArea() {
+                let out = "";
+                for (let i = 0; i < firstGeneration.length; i++) {
+                    for (let k = 0; k < firstGeneration[i].length; k++) {
+                        out += `<div data-x=${k} data-y=${i} data-alive=${
+                            firstGeneration[i][k] ? true : false
+                        } class='cell ${
+                            firstGeneration[i][k] ? "alive" : ""
+                        }'></div>`;
+                    }
+                }
+                block.innerHTML = out;
+            }
+            const coords = [
+                { x: 1, y: 1 },
+                { x: 1, y: -1 },
+                { x: 1, y: 0 },
+                { x: 0, y: 1 },
+                { x: 0, y: -1 },
+                { x: -1, y: 1 },
+                { x: -1, y: -1 },
+                { x: -1, y: 0 },
+            ];
+            function die(x, y) {
+                secondGeneration[y][x] = 0;
+            }
+            function born(x, y) {
+                secondGeneration[y][x] = 1;
+            }
+            function noChange(x, y) {
+                secondGeneration[y][x] = secondGeneration[y][x];
+            }
+            const cellsActions = {
+                1: {
+                    0: die,
+                    1: die,
+                    2: noChange,
+                    3: noChange,
+                    4: die,
+                    5: die,
+                    6: die,
+                    7: die,
+                    8: die,
+                },
+                0: {
+                    0: noChange,
+                    1: noChange,
+                    2: noChange,
+                    3: born,
+                    4: noChange,
+                    5: noChange,
+                    6: noChange,
+                    7: noChange,
+                    8: noChange,
+                },
+            };
+            function lifeCycle() {
+                for (let i = 0; i < firstGeneration.length; i++) {
+                    for (let k = 0; k < firstGeneration[i].length; k++) {
+                        secondGeneration[i][k] = firstGeneration[i][k];
+                    }
+                }
+                for (let i = 0; i < firstGeneration.length; i++) {
+                    for (let k = 0; k < firstGeneration[i].length; k++) {
+                        let neighbors = 0;
+                        for (let n = 0; n < coords.length; n++) {
+                            if (
+                                firstGeneration?.[i + coords?.[n]?.y]?.[
+                                    k + coords?.[n]?.x
+                                ]
+                            ) {
+                                if (
+                                    firstGeneration[i + coords[n].y][
+                                        k + coords[n].x
+                                    ] === 1
+                                ) {
+                                    neighbors += 1;
+                                }
+                            }
+                        }
+                        cellsActions[firstGeneration[i][k]][neighbors](k, i);
+                        neighbors = 0;
+                    }
+                }
+            }
+            lifeCycle();
+            renderArea();
+        </script>
+    </body>
+</html>

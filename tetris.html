@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tetris</title>
+    </head>
+    <body>
+        <script>
+            //core styles
+            document.body.style.backgroundColor = 'black'
+            document.body.style.padding = '0'
+            document.body.style.margin = '0'
+            document.body.style.height = '100vh'
+            document.body.style.width = '100vw'
+            document.body.style.overflow = 'hidden'
+            document.querySelector('*').style.userSelect = 'none';
+
+            //start button
+            const start = document.createElement('button')
+            start.textContent = 'Start game!'
+            start.style.position = 'absolute'
+            start.style.transform = 'translate(-50%, -50%)'
+            start.style.top = '50%'
+            start.style.left = '50%'
+            start.style.cursor = 'pointer'
+            start.style.padding = '20px'
+            start.style.textAlign = 'center'
+            start.style.fontSize = '50px'
+            start.style.fontFamily = 'sans-serif'
+            start.style.backgroundColor = 'white'
+            start.setAttribute('tabindex', 1)
+            document.body.appendChild(start)
+            start.focus()
+
+            function setSizeOfCanvas() {
+                setTimeout(function () {
+                    let w = window.innerWidth
+                    let h = window.innerHeight
+                    let cell
+                    if (w / h > 0.4615) {
+                        cell = parseInt(h / 26)
+                    } else {
+                        cell = parseInt(w / 12)
+                    }
+                    t.context.clearRect(0, 0, canvas.width, canvas.height)
+                    canvas.setAttribute('width', cell * 12)
+                    canvas.setAttribute('height', cell * 26)
+                    t.cellSize = cell
+                    t.renderField(t.context)
+                }, 500);
+            }
+
+            window.addEventListener('resize', setSizeOfCanvas)
+
+            const canvas = document.createElement('canvas');
+            canvas.style.position = 'absolute'
+            canvas.style.transform = 'translate(-50%, -50%)'
+            canvas.style.top = '50%'
+            canvas.style.left = '50%'
+
+            //t: tetris, глобальный объект игры
+            const t = {
+                cellSize: 20,
+                gameIsOver: false,
+                gameIsPaused: false,
+                context: canvas.getContext('2d'),
+                fieldState: [
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9],
+                    [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
+                    [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9],
+                ],
+                figures: [
+                    {
+                        id: 2,
+                        fX: 4,
+                        fY: 2,
+                        state: [
+                            [1, 1],
+                            [1, 1]
+                        ]
+                    },
+                    {
+                        id: 3,
+                        fX: 4,
+                        fY: 0,
+                        state: [
+                            [0, 1, 0, 0],
+                            [0, 1, 0, 0],
+                            [0, 1, 0, 0],
+                            [0, 1, 0, 0],
+                        ]
+                    },
+                    {
+                        id: 4,
+                        fX: 4,
+                        fY: 1,
+                        state: [
+                            [0, 0, 0],
+                            [0, 1, 0],
+                            [1, 1, 1],
+                        ]
+                    },
+                    {
+                        id: 5,
+                        fX: 4,
+                        fY: 1,
+                        state: [
+                            [0, 0, 0],
+                            [1, 0, 0],
+                            [1, 1, 1],
+                        ]
+                    },
+                    {
+                        id: 6,
+                        fX: 4,
+                        fY: 1,
+                        state: [
+                            [0, 0, 0],
+                            [0, 0, 1],
+                            [1, 1, 1],
+                        ]
+                    },
+                    {
+                        id: 7,
+                        fX: 4,
+                        fY: 1,
+                        state: [
+                            [0, 0, 0],
+                            [0, 1, 1],
+                            [1, 1, 0],
+                        ]
+                    },
+                    {
+                        id: 8,
+                        fX: 4,
+                        fY: 1,
+                        state: [
+                            [0, 0, 0],
+                            [1, 1, 0],
+                            [0, 1, 1],
+                        ]
+                    },
+                ],
+                fX: 0,
+                fY: 0,
+                interval: null,
+                speed: 500,
+                figureAccelerated: false,
+                speedAccelerationWhenLevelUp: 30,
+                score: 0,
+                scoresToNextLevelUp: 0,
+                level: 1,
+                scoresForLevelUp: 350,
+                currentFigure: null,
+                nextFigure: null,
+                getRandomFigure() {
+                    return t.figures[randInt(0, t.figures.length - 1)]
+                },
+                putFigureOnFieldState() {
+                    for (let i = 0; i < t.currentFigure.state.length; i++) {
+                        for (let k = 0; k < t.currentFigure.state[i].length; k++) {
+                            if (t.currentFigure.state[i][k] === 1) {
+                                t.fieldState[i + t.fY][k + t.fX] = 1
+                            }
+                        }
+                    }
+                },
+                eraseFigureFromFieldState() {
+                    for (let i = 0; i < t.currentFigure.state.length; i++) {
+                        for (let k = 0; k < t.currentFigure.state[i].length; k++) {
+                            if (t.fieldState[i + t.fY][k + t.fX] === 1) {
+                                t.fieldState[i + t.fY][k + t.fX] = 0
+                            }
+                        }
+                    }
+                },
+                startGame() {
+                    t.nextFigure = t.getRandomFigure()
+                    t.startFigureLifeCycle()
+                    t.startFalling(t.speed)
+                },
+                pause() {
+                    t.gameIsPaused = true
+                },
+                resume() {
+                    t.gameIsPaused = false
+                },
+                startFalling(sp) {
+                    t.interval = setInterval(() => {
+                        if (!t.gameIsPaused) {
+                            t.down()
+                        }
+                        t.renderField(t.context)
+                    }, sp)
+                },
+                startFigureLifeCycle() {
+                    t.currentFigure = t.nextFigure
+                    t.nextFigure = t.getRandomFigure()
+                    t.fX = t.currentFigure.fX
+                    t.fY = t.currentFigure.fY
+                    if (t.checkGameOver()) {
+                        t.gameOver()
+                    } else {
+                        t.putFigureOnFieldState()
+                        t.renderField(t.context)
+                    }
+                },
+                checkGameOver() {
+                    let gameOver = false
+                    for (let i = 0; i < t.currentFigure.state.length; i++) {
+                        for (let k = 0; k < t.currentFigure.state[i].length; k++) {
+                            if (t.currentFigure.state[i][k] === 1 &&
+                                t.fieldState[i + t.fY][k + t.fX] > 1
+                            ) {
+                                gameOver = true
+                            }
+                        }
+                    }
+                    return gameOver
+                },
+                gameOver() {
+                    t.gameIsOver = true
+                    clearInterval(t.interval)
+                },
+                checkLevelUp() {
+                    if (t.scoresToNextLevelUp >= t.scoresForLevelUp) {
+                        t.scoresToNextLevelUp = 0
+                        clearInterval(t.interval)
+                        t.level += 1
+                        t.speed = t.speed - t.speedAccelerationWhenLevelUp
+                        t.startFalling(t.speed)
+                    }
+                },
+                checkRows() {
+                    let fieldHasFullRow = false
+                    let i = t.fieldState.length - 3
+                    for (; i > 3; i--) {
+                        if (t.fieldState[i].indexOf(0) === -1) {
+                            fieldHasFullRow = true
+                        }
+                        if (fieldHasFullRow) break
+                    }
+                    if (fieldHasFullRow) {
+                        t.clearRow(i)
+                        t.checkRows()
+                    } else {
+                        t.startFigureLifeCycle()
+                        t.checkLevelUp()
+                    }
+                },
+                clearRow(index) {
+                    for (let k = 1; k < t.fieldState[index].length - 1; k++) {
+                        t.fieldState[index][k] = 5
+                    }
+                    for (let i = index; i > 0; i--) {
+                        for (let k = 0; k < t.fieldState[i].length; k++) {
+                            t.fieldState[i][k] = t.fieldState[i - 1][k]
+                        }
+                    }
+                    t.score += 10
+                    t.scoresToNextLevelUp += 10
+                    t.renderField(t.context)
+                },
+                down() {
+                    let canStepDown = true
+                    for (let i = 0; i < t.currentFigure.state.length; i++) {
+                        for (let k = 0; k < t.currentFigure.state[i].length; k++) {
+                            if (t.fieldState[i + t.fY][k + t.fX] === 1 &&
+                                t.fieldState[i + t.fY + 1][k + t.fX] > 1
+                            ) {
+                                canStepDown = false
+                                break
+                            }
+                        }
+                    }
+                    if (canStepDown) {
+                        t.eraseFigureFromFieldState()
+                        t.fY += 1
+                        t.putFigureOnFieldState()
+                    } else {
+                        t.mountFigure()
+                    }
+                },
+                left() {
+                    if (!t.gameIsOver && !t.gameIsPaused) {
+                        let canStepLeft = true
+                        for (let i = 0; i < t.currentFigure.state.length; i++) {
+                            for (let k = 0; k < t.currentFigure.state[i].length; k++) {
+                                if (t.fieldState[i + t.fY][k + t.fX] === 1 &&
+                                    t.fieldState[i + t.fY][k + t.fX - 1] > 1
+                                ) {
+                                    canStepLeft = false
+                                    break
+                                }
+                            }
+                        }
+                        if (canStepLeft) {
+                            t.eraseFigureFromFieldState()
+                            t.fX -= 1
+                            t.putFigureOnFieldState()
+                            t.renderField(t.context)
+                        }
+                    }
+                },
+                right() {
+                    if (!t.gameIsOver && !t.gameIsPaused) {
+                        let canStepRight = true
+                        for (let i = 0; i < t.currentFigure.state.length; i++) {
+                            for (let k = 0; k < t.currentFigure.state[i].length; k++) {
+                                if (t.fieldState[i + t.fY][k + t.fX] === 1 &&
+                                    t.fieldState[i + t.fY][k + t.fX + 1] > 1
+                                ) {
+                                    canStepRight = false
+                                    break
+                                }
+                            }
+                        }
+                        if (canStepRight) {
+                            t.eraseFigureFromFieldState()
+                            t.fX += 1
+                            t.putFigureOnFieldState()
+                            t.renderField(t.context)
+                        }
+                    }
+                },
+                rotate() {
+                    if (!t.gameIsOver && !t.gameIsPaused) {
+                        let canRotate = true
+                        let rotatedState = rotateMatrix(t.currentFigure.state)
+                        for (let i = 0; i < rotatedState.length; i++) {
+                            for (let k = 0; k < rotatedState[i].length; k++) {
+                                if (rotatedState[i][k] === 1 &&
+                                    t.fieldState[i + t.fY][k + t.fX] > 1
+                                ) {
+                                    canRotate = false
+                                    break
+                                }
+                            }
+                        }
+                        if (canRotate) {
+                            t.eraseFigureFromFieldState()
+                            t.currentFigure.state = rotatedState
+                            t.putFigureOnFieldState()
+                            t.renderField(t.context)
+                        }
+                    }
+                },
+                accelerateSpeed() {
+                    t.figureAccelerated = true
+                    if (!t.gameIsOver) {
+                        clearInterval(t.interval)
+                        t.startFalling(t.speed / 20)
+                    }
+                },
+                restoreSpeed() {
+                    t.figureAccelerated = false
+                    if (!t.gameIsOver) {
+                        clearInterval(t.interval)
+                        t.startFalling(t.speed)
+                    }
+                },
+                mountFigure() {
+                    if (t.figureAccelerated) {
+                        t.restoreSpeed()
+                    }
+                    for (let i = 0; i < t.fieldState.length; i++) {
+                        for (let k = 0; k < t.fieldState[i].length; k++) {
+                            if (t.fieldState[i][k] === 1) {
+                                t.fieldState[i][k] = t.currentFigure.id
+                            }
+                        }
+                    }
+                    t.checkRows()
+                },
+                //view
+                figuresColors: {
+                    2: 'red',
+                    3: 'orange',
+                    4: 'yellow',
+                    5: 'green',
+                    6: 'lightblue',
+                    7: 'blue',
+                    8: 'violet',
+                },
+                renderField(ctx) {
+                    //clean place for popup pause anyway
+                    for (let i = 12; i < 16; i++) {
+                        for (let k = 3; k < t.fieldState[i].length - 3; k++) {
+                            ctx.clearRect(k * t.cellSize, i * t.cellSize, t.cellSize, t.cellSize)
+                        }
+                    }
+                    // render field and popup pause if requires
+                    for (let i = 0; i < t.fieldState.length; i++) {
+                        for (let k = 0; k < t.fieldState[i].length; k++) {
+                            //popup pause window
+                            if (t.gameIsPaused && i >= 12 && i < 16 && k >= 3 && k < 9) {
+                                ctx.fillStyle = "white"
+                                ctx.fillRect(k * t.cellSize, i * t.cellSize, t.cellSize, t.cellSize)
+                                continue
+                            }
+                            //field
+                            switch (t.fieldState[i][k]) {
+                                case 0:
+                                    ctx.fillStyle = "black"
+                                    break
+                                case 1:
+                                    ctx.fillStyle = t.figuresColors[t.currentFigure.id]
+                                    break
+                                case 2:
+                                    ctx.fillStyle = t.figuresColors[2]
+                                    break
+                                case 3:
+                                    ctx.fillStyle = t.figuresColors[3]
+                                    break
+                                case 4:
+                                    ctx.fillStyle = t.figuresColors[4]
+                                    break
+                                case 5:
+                                    ctx.fillStyle = t.figuresColors[5]
+                                    break
+                                case 6:
+                                    ctx.fillStyle = t.figuresColors[6]
+                                    break
+                                case 7:
+                                    ctx.fillStyle = t.figuresColors[7]
+                                    break
+                                case 8:
+                                    ctx.fillStyle = t.figuresColors[8]
+                                    break
+                                case 9:
+                                    ctx.fillStyle = "white"
+                                    break
+                            }
+                            if (t.fieldState[i][k] === 9) {
+                                ctx.fillRect(
+                                    k * t.cellSize,
+                                    i * t.cellSize,
+                                    t.cellSize,
+                                    t.cellSize
+                                )
+                            } else {
+                                ctx.fillRect(
+                                    k * t.cellSize + Math.ceil(t.cellSize / 20),
+                                    i * t.cellSize + Math.ceil(t.cellSize / 20),
+                                    t.cellSize - Math.ceil(t.cellSize / 20),
+                                    t.cellSize - Math.ceil(t.cellSize / 20)
+                                )
+                            }
+                        }
+
+                    }
+                    //popup pause title
+                    if (t.gameIsPaused) {
+                        ctx.font = `bold ${t.cellSize}px sans-serif`
+                        ctx.fillStyle = 'black'
+                        ctx.fillText('Pause', t.cellSize * 4.5, t.cellSize * 14.2)
+                    }
+                    //GameOver popup
+                    if (t.gameIsOver) {
+                        for (let i = 12; i < 16; i++) {
+                            for (let k = 3; k < t.fieldState[i].length - 3; k++) {
+                                ctx.fillStyle = "white"
+                                ctx.fillRect(k * t.cellSize, i * t.cellSize, t.cellSize, t.cellSize)
+                            }
+                        }
+                        ctx.font = `bold ${t.cellSize}px sans-serif`
+                        ctx.fillStyle = 'black'
+                        ctx.fillText('GameOver', t.cellSize * 3.5, t.cellSize * 14.2)
+                    }
+                    //Header background
+                    for (let i = 0; i < 4; i++) {
+                        for (let k = 0; k < t.fieldState[i].length; k++) {
+                            ctx.fillStyle = "white"
+                            if (k === 0) {
+                                ctx.fillRect(
+                                    k * t.cellSize + t.cellSize / 20,
+                                    i * t.cellSize,
+                                    t.cellSize - t.cellSize / 20,
+                                    t.cellSize - t.cellSize / 20
+                                )
+                            } else {
+                                ctx.fillRect(k * t.cellSize, i * t.cellSize, t.cellSize, t.cellSize)
+                            }
+                        }
+                    }
+                    //Header score info
+                    ctx.font = `bold ${t.cellSize}px sans-serif`
+                    ctx.fillStyle = 'black'
+                    ctx.fillText(`Score: ${t.score}`, t.cellSize, t.cellSize * 1.5)
+                    //Header level info
+                    ctx.font = `normal ${t.cellSize}px sans-serif`
+                    ctx.fillStyle = 'black'
+                    ctx.fillText(`Level: ${t.level}`, t.cellSize, t.cellSize * 3)
+                    //Header next figure
+                    if (t.nextFigure) {
+                        for (let i = 0; i < t.nextFigure.state.length; i++) {
+                            for (let k = 0; k < t.nextFigure.state[i].length; k++) {
+                                if (t.nextFigure.state[i][k] === 1) {
+                                    ctx.fillStyle = 'black'
+                                    ctx.fillRect(
+                                        (k + 15) * (t.cellSize / 1.8) + (t.cellSize / 20),
+                                        (i + 2) * (t.cellSize / 1.8) + (t.cellSize / 20),
+                                        (t.cellSize / 1.8) - (t.cellSize / 20),
+                                        (t.cellSize / 1.8) - (t.cellSize / 20)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+            }
+
+            //helpers
+            function rotateMatrix(matrix) {
+                const N = matrix.length - 1
+                const result = matrix.map((row, i) => row.map((val, j) => matrix[N - j][i]))
+                return result
+            }
+            function randInt(min, max) {
+                let rand = min + Math.random() * (max + 1 - min)
+                return Math.floor(rand)
+            }
+
+            //init
+            setSizeOfCanvas()
+            start.onclick = () => {
+                start.style.display = 'none'
+                document.body.appendChild(canvas)
+                canvas.requestFullscreen().catch(() => { })
+                t.renderField(t.context)
+                t.startGame()
+                //keyboard controls
+                document.onkeydown = (e) => {
+                    if (e.keyCode === 37) {
+                        t.left()
+                    } else if (e.keyCode === 39) {
+                        t.right()
+                    } else if (e.keyCode === 38) {
+                        t.rotate()
+                    } else if (e.keyCode === 40) {
+                        t.accelerateSpeed()
+                    } else if (e.keyCode === 32) {
+                        if (t.gameIsOver) {
+                            window.location.reload()
+                        }
+                        if (t.gameIsPaused) {
+                            t.resume()
+                        } else {
+                            t.pause()
+                        }
+                    }
+                }
+                document.onkeyup = (e) => {
+                    if (e.keyCode === 40) {
+                        t.restoreSpeed()
+                    }
+                }
+                //touch controls
+                canvas.ontouchstart = (e) => {
+                    canvas.requestFullscreen().catch(() => { })
+                    let x = e.touches[0].screenX
+                    let y = e.touches[0].screenY
+                    canvas.ontouchend = (e) => {
+                        let xEnd = e.changedTouches[0].screenX
+                        let yEnd = e.changedTouches[0].screenY
+                        if ((xEnd - 10) > x && yEnd < (y + 40) && yEnd > (y - 40)) {
+                            t.right()
+                            if ((xEnd - x) > 60) {
+                                t.right()
+                            }
+                        } else if ((xEnd + 10) < x && yEnd < (y + 40) && yEnd > (y - 40)) {
+                            t.left()
+                            if ((x - xEnd) > 60) {
+                                t.left()
+                            }
+                        } else if ((yEnd - 10) > y && xEnd < (x + 40) && xEnd > (x - 40)) {
+                            t.accelerateSpeed()
+                            setTimeout(function () {
+                                t.restoreSpeed()
+                            }, (yEnd - y) * 2);
+                        } else if ((yEnd + 10) < y && xEnd < (x + 40) && xEnd > (x - 40)) {
+                            t.rotate()
+                        } else if ((y + 10) > yEnd && (y - 10) < yEnd && (x + 10) > xEnd && (x - 10) < xEnd) {
+                            if (t.gameIsOver) {
+                                window.location.reload()
+                            }
+                            if (t.gameIsPaused) {
+                                t.resume()
+                            } else {
+                                t.pause()
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+    </body>
+</html>
