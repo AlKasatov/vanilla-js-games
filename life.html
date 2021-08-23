@@ -18,7 +18,7 @@
             }
             .block {
                 margin: auto;
-                max-width: 500px;
+                max-width: 700px;
                 background-color: #eee;
                 display: flex;
                 flex-wrap: wrap;
@@ -26,8 +26,6 @@
             }
             .cell {
                 border: 1px solid #000;
-                height: 10%;
-                width: 10%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -60,8 +58,7 @@
             .next:hover {
                 background-color: #444;
             }
-            .clear {
-                background-color: #900;
+            .btn {
                 color: white;
                 padding: 5px;
                 cursor: pointer;
@@ -70,9 +67,6 @@
                 transition: background-color 0.3s;
                 display: block;
                 margin: 0 auto;
-            }
-            .clear:hover {
-                background-color: #700;
             }
             p {
                 font-size: 18px;
@@ -92,6 +86,25 @@
             .title:hover {
                 color: beige;
             }
+            .buttons {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 0 auto;
+                max-width: 300px;
+            }
+            .clear {
+                background-color: #900;
+            }
+            .clear:hover {
+                background-color: #700;
+            }
+            .play {
+                background-color: #060;
+            }
+            .play:hover {
+                background-color: #040;
+            }
         </style>
     </head>
     <body>
@@ -103,14 +116,29 @@
         <button class="next">Click here to get next generation</button>
         <div class="block"></div>
         <p>Click on area to edit cells</p>
-        <button class="clear">Clear area</button>
+        <div class="buttons">
+            <button class="btn clear">Clear area</button>
+            <button class="btn play">Play/stop</button>
+        </div>
         <script>
             const block = document.querySelector(".block");
             const next = document.querySelector(".next");
             const clear = document.querySelector(".clear");
+            const play = document.querySelector(".play");
+            let areaSize = 30;
+            const firstGeneration = JSON.parse(
+                JSON.stringify(
+                    new Array(areaSize).fill(new Array(areaSize).fill(0))
+                )
+            );
+            const secondGeneration = JSON.parse(
+                JSON.stringify(
+                    new Array(areaSize).fill(new Array(areaSize).fill(0))
+                )
+            );
             next.onclick = () => {
                 lifeCycle();
-                renderArea();
+                renderArea(secondGeneration);
             };
             clear.onclick = () => {
                 for (let i = 0; i < firstGeneration.length; i++) {
@@ -118,7 +146,15 @@
                         firstGeneration[i][k] = 0;
                     }
                 }
-                editArea();
+                renderArea(firstGeneration);
+                stopLife();
+            };
+            play.onclick = () => {
+                if (isPlaying) {
+                    stopLife();
+                } else {
+                    playLife();
+                }
             };
             block.onclick = (e) => {
                 if (e.target.classList.contains("cell")) {
@@ -129,62 +165,26 @@
                     } else if (firstGeneration[y][x] === 0) {
                         firstGeneration[y][x] = 1;
                     }
-                    editArea();
+                    renderArea(firstGeneration);
                 }
             };
-            const firstGeneration = [
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            ];
-
-            const secondGeneration = [
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            ];
-            function renderArea() {
+            function renderArea(area) {
                 let out = "";
-                for (let i = 0; i < secondGeneration.length; i++) {
-                    for (let k = 0; k < secondGeneration[i].length; k++) {
+                for (let i = 0; i < area.length; i++) {
+                    for (let k = 0; k < area[i].length; k++) {
                         out += `<div data-x=${k} data-y=${i} data-alive=${
-                            secondGeneration[i][k] ? true : false
-                        } class='cell ${
-                            secondGeneration[i][k] ? "alive" : ""
-                        }'></div>`;
+                            area[i][k] ? true : false
+                        } style='width: ${100 / areaSize}%; height: ${
+                            100 / areaSize
+                        }%;' class='cell ${area[i][k] ? "alive" : ""}'></div>`;
                     }
                 }
-                for (let i = 0; i < firstGeneration.length; i++) {
-                    for (let k = 0; k < firstGeneration[i].length; k++) {
-                        firstGeneration[k][i] = secondGeneration[k][i];
-                        secondGeneration[k][i] = 0;
-                    }
-                }
-                block.innerHTML = out;
-            }
-            function editArea() {
-                let out = "";
-                for (let i = 0; i < firstGeneration.length; i++) {
-                    for (let k = 0; k < firstGeneration[i].length; k++) {
-                        out += `<div data-x=${k} data-y=${i} data-alive=${
-                            firstGeneration[i][k] ? true : false
-                        } class='cell ${
-                            firstGeneration[i][k] ? "alive" : ""
-                        }'></div>`;
+                if (area === secondGeneration) {
+                    for (let i = 0; i < firstGeneration.length; i++) {
+                        for (let k = 0; k < firstGeneration[i].length; k++) {
+                            firstGeneration[k][i] = secondGeneration[k][i];
+                            secondGeneration[k][i] = 0;
+                        }
                     }
                 }
                 block.innerHTML = out;
@@ -205,8 +205,8 @@
             function born(x, y) {
                 secondGeneration[y][x] = 1;
             }
-            function noChange(x, y) {
-                secondGeneration[y][x] = secondGeneration[y][x];
+            function noChange() {
+                return;
             }
             const cellsActions = {
                 1: {
@@ -261,8 +261,23 @@
                     }
                 }
             }
+            let speed = 100;
+            let timer = null;
+            let isPlaying = false;
+            function playLife() {
+                isPlaying = true;
+                timer = setInterval(() => {
+                    lifeCycle();
+                    renderArea(secondGeneration);
+                }, speed);
+            }
+            function stopLife() {
+                isPlaying = false;
+                clearInterval(timer);
+            }
+
             lifeCycle();
-            renderArea();
+            renderArea(secondGeneration);
         </script>
     </body>
 </html>
