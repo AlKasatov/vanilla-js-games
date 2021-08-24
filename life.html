@@ -1,343 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Conway's Game of Life</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #313131;
-            color: bisque;
-            font-family: sans-serif;
-            margin: 0;
-            padding: 10px;
-        }
-
-        .block {
-            margin: auto;
-            max-width: 700px;
-            background-color: #eee;
-            display: flex;
-            flex-wrap: wrap;
-            aspect-ratio: 1 / 1;
-        }
-
-        .cell {
-            border: 0.5px solid rgba(0, 0, 0, .3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.1s;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .cell:hover {
-            background-color: #faa;
-        }
-
-        .alive {
-            background-color: #900;
-        }
-
-        .alive:hover {
-            background-color: #700;
-        }
-
-        .next {
-            color: bisque;
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-            font-size: 26px;
-            padding: 10px;
-            cursor: pointer;
-            background-color: transparent;
-            border: 1px solid bisque;
-            margin: 20px auto;
-            transition: background-color 0.3s;
-            display: block;
-        }
-
-        .next:hover {
-            background-color: #444;
-        }
-
-        .btn {
-            color: white;
-            padding: 5px;
-            cursor: pointer;
-            width: 100px;
-            border: none;
-            transition: background-color 0.3s;
-            display: block;
-            margin: 0 auto;
-        }
-
-        p {
-            font-size: 18px;
-            text-align: center;
-        }
-
-        .title {
-            text-align: center;
-            font-size: 30px;
-            text-decoration: none;
-            transition: color 0.3s;
-            width: 100%;
-            display: block;
-        }
-
-        .title:visited {
-            color: inherit;
-        }
-
-        .title:hover {
-            color: beige;
-        }
-
-        .buttons {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 0 auto;
-            max-width: 300px;
-        }
-
-        .clear {
-            background-color: #900;
-        }
-
-        .clear:hover {
-            background-color: #700;
-        }
-
-        .play {
-            background-color: #060;
-        }
-
-        .play:hover {
-            background-color: #040;
-        }
-    </style>
-</head>
-
-<body>
-    <a class="title" href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's Game of Life</a>
-    <button class="next">Click here to get next generation</button>
-    <div class="block"></div>
-    <p>Click on area to edit cells</p>
-    <div class="buttons">
-        <button class="btn clear">Clear area</button>
-        <button class="btn play">Play/stop</button>
-    </div>
-    <script>
-        //vars
-        let areaSize = 100;
-        let speed = 50;
-        let timer = null;
-        let isPlaying = false;
-        let mouseIsPushed = false;
-        const coords = [
-            { x: 1, y: 1 },
-            { x: 1, y: -1 },
-            { x: 1, y: 0 },
-            { x: 0, y: 1 },
-            { x: 0, y: -1 },
-            { x: -1, y: 1 },
-            { x: -1, y: -1 },
-            { x: -1, y: 0 },
-        ];
-        const cellsActions = {
-            1: {
-                0: die,
-                1: die,
-                2: noChange,
-                3: noChange,
-                4: die,
-                5: die,
-                6: die,
-                7: die,
-                8: die,
-            },
-            0: {
-                0: noChange,
-                1: noChange,
-                2: noChange,
-                3: born,
-                4: noChange,
-                5: noChange,
-                6: noChange,
-                7: noChange,
-                8: noChange,
-            },
-        };
-        //elements
-        const block = document.querySelector(".block");
-        const next = document.querySelector(".next");
-        const clear = document.querySelector(".clear");
-        const play = document.querySelector(".play");
-
-        //main arrays
-        const firstGeneration = JSON.parse(
-            JSON.stringify(
-                new Array(areaSize).fill(new Array(areaSize).fill(0))
-            )
-        );
-        const secondGeneration = JSON.parse(
-            JSON.stringify(
-                new Array(areaSize).fill(new Array(areaSize).fill(0))
-            )
-        );
-
-        //init
-        let cells = []
-        for (let i = 0; i < firstGeneration.length; i++) {
-            for (let k = 0; k < firstGeneration[i].length; k++) {
-                let cell = document.createElement('div')
-                cell.classList.add('cell')
-                cell.style.width = `${100 / areaSize}%`
-                cell.style.height = `${100 / areaSize}%`
-                cell.setAttribute('data-x', k)
-                cell.setAttribute('data-y', i)
-                cells.push(cell)
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Conway's Game of Life</title>
+        <style>
+            * {
+                box-sizing: border-box;
             }
-        }
-        for (let i = 0; i < cells.length; i++) {
-            block.appendChild(cells[i])
-        }
-        lifeCycle();
-        renderArea(secondGeneration);
 
-        //handlers
-        next.onclick = () => {
-            stopLife();
+            body {
+                background: #313131;
+                color: bisque;
+                font-family: sans-serif;
+                margin: 0;
+                padding: 10px;
+            }
+
+            .next {
+                color: bisque;
+                text-align: center;
+                width: 100%;
+                max-width: 400px;
+                font-size: 26px;
+                padding: 10px;
+                cursor: pointer;
+                background-color: transparent;
+                border: 1px solid bisque;
+                margin: 20px auto;
+                transition: background-color 0.3s;
+                display: block;
+            }
+
+            .next:hover {
+                background-color: #444;
+            }
+
+            .btn {
+                color: white;
+                padding: 5px;
+                cursor: pointer;
+                width: 100px;
+                border: none;
+                transition: background-color 0.3s;
+                display: block;
+                margin: 0 auto;
+            }
+
+            p {
+                font-size: 18px;
+                text-align: center;
+            }
+
+            .title {
+                text-align: center;
+                font-size: 30px;
+                text-decoration: none;
+                transition: color 0.3s;
+                width: 100%;
+                display: block;
+                color: inherit;
+            }
+
+            .title:visited {
+                color: inherit;
+            }
+
+            .title:hover {
+                color: beige;
+            }
+
+            .buttons {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 0 auto;
+                max-width: 300px;
+            }
+
+            .clear {
+                background-color: #900;
+            }
+
+            .clear:hover {
+                background-color: #700;
+            }
+
+            .play {
+                background-color: #060;
+            }
+
+            .play:hover {
+                background-color: #040;
+            }
+
+            canvas {
+                border: 1px solid #000;
+                background-color: #ddd;
+                margin: 0 auto;
+                display: block;
+            }
+        </style>
+    </head>
+
+    <body>
+        <a
+            class="title"
+            href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"
+            >Conway's Game of Life</a
+        >
+        <button class="next">Click here to get next generation</button>
+        <canvas id="area" width="700" height="700"></canvas>
+        <p>Click on area to edit cells</p>
+        <div class="buttons">
+            <button class="btn clear">Clear area</button>
+            <button class="btn play">Play/stop</button>
+        </div>
+        <script>
+            //vars
+            let areaSizeX = 60;
+            let areaSizeY = 40;
+            let cellSize = 11;
+            let speed = 50;
+            let timer = null;
+            let isPlaying = false;
+            let mouseIsPushed = false;
+            const coords = [
+                { x: 1, y: 1 },
+                { x: 1, y: -1 },
+                { x: 1, y: 0 },
+                { x: 0, y: 1 },
+                { x: 0, y: -1 },
+                { x: -1, y: 1 },
+                { x: -1, y: -1 },
+                { x: -1, y: 0 },
+            ];
+            const cellsActions = {
+                1: {
+                    0: die,
+                    1: die,
+                    2: noChange,
+                    3: noChange,
+                    4: die,
+                    5: die,
+                    6: die,
+                    7: die,
+                    8: die,
+                },
+                0: {
+                    0: noChange,
+                    1: noChange,
+                    2: noChange,
+                    3: born,
+                    4: noChange,
+                    5: noChange,
+                    6: noChange,
+                    7: noChange,
+                    8: noChange,
+                },
+            };
+            //elements
+            let canvas = document.querySelector("#area");
+            const next = document.querySelector(".next");
+            const clear = document.querySelector(".clear");
+            const play = document.querySelector(".play");
+
+            //main arrays
+            const firstGeneration = JSON.parse(
+                JSON.stringify(
+                    new Array(areaSizeY).fill(new Array(areaSizeX).fill(0))
+                )
+            );
+
+            const secondGeneration = JSON.parse(
+                JSON.stringify(
+                    new Array(areaSizeY).fill(new Array(areaSizeX).fill(0))
+                )
+            );
+
+            //init
+            canvas.setAttribute("width", areaSizeX * cellSize);
+            canvas.setAttribute("height", areaSizeY * cellSize);
+            let context = canvas.getContext("2d");
+
             lifeCycle();
             renderArea(secondGeneration);
-        };
-        clear.onclick = () => {
-            for (let i = 0; i < firstGeneration.length; i++) {
-                for (let k = 0; k < firstGeneration[i].length; k++) {
-                    firstGeneration[i][k] = 0;
-                }
-            }
-            renderArea(firstGeneration);
-            stopLife();
-        };
-        play.onclick = () => {
-            if (isPlaying) {
+
+            //handlers
+            next.onclick = () => {
                 stopLife();
-            } else {
-                playLife();
-            }
-        };
-        block.onclick = (e) => {
-            mouseHandler(e)
-        };
-        function mouseHandler(e) {
-            if (e.target.classList.contains("cell")) {
-                let x = e.target.dataset.x;
-                let y = e.target.dataset.y;
-                if (firstGeneration[y][x] === 1) {
-                    firstGeneration[y][x] = 0;
-                } else if (firstGeneration[y][x] === 0) {
-                    firstGeneration[y][x] = 1;
-                }
-                renderArea(firstGeneration);
-            }
-        }
-        block.onmousedown = () => {
-            mouseIsPushed = true
-            mouseHandler(e)
-        }
-        block.onmouseup = () => {
-            mouseIsPushed = false
-        }
-        block.onmouseover = e => {
-            if (mouseIsPushed) {
-                mouseHandler(e)
-            }
-        }
-        block.onmouseleave = e => {
-            if (e.target.classList.contains("cell") && mouseIsPushed) {
-                mouseIsPushed = false
-            }
-        }
-
-        //functions
-        function renderArea(area) {
-            for (let i = 0; i < cells.length; i++) {
-                if (area[cells[i].dataset.y][cells[i].dataset.x] === 1) cells[i].classList.add('alive')
-                else if (area[cells[i].dataset.y][cells[i].dataset.x] === 0) cells[i].classList.remove('alive')
-            }
-            if (area === secondGeneration) {
-                for (let i = 0; i < firstGeneration.length; i++) {
-                    for (let k = 0; k < firstGeneration[i].length; k++) {
-                        firstGeneration[k][i] = secondGeneration[k][i];
-                        secondGeneration[k][i] = 0;
-                    }
-                }
-            }
-        }
-
-        function die(x, y) {
-            secondGeneration[y][x] = 0;
-        }
-        function born(x, y) {
-            secondGeneration[y][x] = 1;
-        }
-        function noChange() {
-            return;
-        }
-
-        function lifeCycle() {
-            for (let i = 0; i < firstGeneration.length; i++) {
-                for (let k = 0; k < firstGeneration[i].length; k++) {
-                    secondGeneration[i][k] = firstGeneration[i][k];
-                }
-            }
-            for (let i = 0; i < firstGeneration.length; i++) {
-                for (let k = 0; k < firstGeneration[i].length; k++) {
-                    let neighbors = 0;
-                    for (let n = 0; n < coords.length; n++) {
-                        if (
-                            firstGeneration?.[i + coords?.[n]?.y]?.[
-                            k + coords?.[n]?.x
-                            ]
-                        ) {
-                            if (
-                                firstGeneration[i + coords[n].y][
-                                k + coords[n].x
-                                ] === 1
-                            ) {
-                                neighbors += 1;
-                            }
-                        }
-                    }
-                    cellsActions[firstGeneration[i][k]][neighbors](k, i);
-                    neighbors = 0;
-                }
-            }
-        }
-
-        function playLife() {
-            isPlaying = true;
-            timer = setInterval(() => {
                 lifeCycle();
                 renderArea(secondGeneration);
-            }, speed);
-        }
-        function stopLife() {
-            isPlaying = false;
-            clearInterval(timer);
-        }
-    </script>
-</body>
+            };
+            clear.onclick = () => {
+                for (let i = 0; i < firstGeneration.length; i++) {
+                    for (let k = 0; k < firstGeneration[i].length; k++) {
+                        firstGeneration[i][k] = 0;
+                    }
+                }
+                renderArea(firstGeneration);
+                stopLife();
+            };
+            play.onclick = () => {
+                if (isPlaying) {
+                    stopLife();
+                } else {
+                    playLife();
+                }
+            };
+            canvas.onclick = (e) => {
+                mouseHandler(e);
+            };
+            function mouseHandler(e) {
+                console.log(e);
+                let cell = getCoordsOfCell(e.offsetX, e.offsetY);
+                firstGeneration[cell.y][cell.x] = e.shiftKey ? 0 : 1;
+                renderArea(firstGeneration);
+            }
+            canvas.onmousedown = (e) => {
+                mouseIsPushed = true;
+            };
+            canvas.onmouseup = (e) => {
+                mouseIsPushed = false;
+            };
+            canvas.onmousemove = (e) => {
+                if (mouseIsPushed) {
+                    mouseHandler(e);
+                }
+            };
 
+            //functions
+            function drawCell(x, y, alive) {
+                context.fillStyle = "black";
+                context.fillRect(x, y, cellSize, cellSize);
+                context.fillStyle = alive ? "#900" : "#eee";
+                context.fillRect(x + 0.5, y + 0.5, cellSize - 1, cellSize - 1);
+            }
+            function getCoordsOfCell(x, y) {
+                return {
+                    x: parseInt(x / cellSize),
+                    y: parseInt(y / cellSize),
+                };
+            }
+            function renderArea(area) {
+                for (let i = 0; i < area.length; i++) {
+                    for (let k = 0; k < area[i].length; k++) {
+                        drawCell(k * cellSize, i * cellSize, !!area[i][k]);
+                    }
+                }
+                if (area === secondGeneration) {
+                    for (let i = 0; i < firstGeneration.length; i++) {
+                        for (let k = 0; k < firstGeneration[i].length; k++) {
+                            firstGeneration[i][k] = secondGeneration[i][k];
+                            secondGeneration[i][k] = 0;
+                        }
+                    }
+                }
+            }
+
+            function die(x, y) {
+                secondGeneration[y][x] = 0;
+            }
+            function born(x, y) {
+                secondGeneration[y][x] = 1;
+            }
+            function noChange() {
+                return;
+            }
+
+            function lifeCycle() {
+                for (let i = 0; i < firstGeneration.length; i++) {
+                    for (let k = 0; k < firstGeneration[i].length; k++) {
+                        secondGeneration[i][k] = firstGeneration[i][k];
+                    }
+                }
+                for (let i = 0; i < firstGeneration.length; i++) {
+                    for (let k = 0; k < firstGeneration[i].length; k++) {
+                        let neighbors = 0;
+                        for (let n = 0; n < coords.length; n++) {
+                            if (
+                                firstGeneration?.[i + coords?.[n]?.y]?.[
+                                    k + coords?.[n]?.x
+                                ]
+                            ) {
+                                if (
+                                    firstGeneration[i + coords[n].y][
+                                        k + coords[n].x
+                                    ] === 1
+                                ) {
+                                    neighbors += 1;
+                                }
+                            }
+                        }
+                        cellsActions[firstGeneration[i][k]][neighbors](k, i);
+                        neighbors = 0;
+                    }
+                }
+            }
+
+            function playLife() {
+                isPlaying = true;
+                timer = setInterval(() => {
+                    lifeCycle();
+                    renderArea(secondGeneration);
+                }, speed);
+            }
+            function stopLife() {
+                isPlaying = false;
+                clearInterval(timer);
+            }
+        </script>
+    </body>
 </html>
