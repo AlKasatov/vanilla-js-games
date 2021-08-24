@@ -18,28 +18,9 @@
                 padding: 10px;
             }
 
-            .next {
-                color: bisque;
-                text-align: center;
-                width: 100%;
-                max-width: 400px;
-                font-size: 26px;
-                padding: 10px;
-                cursor: pointer;
-                background-color: transparent;
-                border: 1px solid bisque;
-                margin: 20px auto;
-                transition: background-color 0.3s;
-                display: block;
-            }
-
-            .next:hover {
-                background-color: #444;
-            }
-
             .btn {
                 color: white;
-                padding: 5px;
+                padding: 10px;
                 cursor: pointer;
                 width: 100px;
                 border: none;
@@ -55,7 +36,7 @@
 
             .title {
                 text-align: center;
-                font-size: 30px;
+                font-size: 36px;
                 text-decoration: none;
                 transition: color 0.3s;
                 width: 100%;
@@ -75,8 +56,8 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin: 0 auto;
-                max-width: 300px;
+                margin: 20px auto 30px;
+                max-width: 600px;
             }
 
             .clear {
@@ -103,6 +84,14 @@
                 background-color: #004;
             }
 
+            .next {
+                background-color: #606;
+            }
+
+            .next:hover {
+                background-color: #404;
+            }
+
             canvas {
                 border: 1px solid #000;
                 background-color: #ddd;
@@ -118,19 +107,20 @@
             href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life"
             >Conway's Game of Life</a
         >
-        <button class="next">Click here to get next generation</button>
-        <canvas id="area" width="700" height="700"></canvas>
-        <p>Click on area to edit cells</p>
         <div class="buttons">
-            <button class="btn clear">Clear area</button>
             <button class="btn play">Play/stop</button>
+            <button class="btn next">Step</button>
             <button class="btn random">Randomize</button>
+            <button class="btn clear">Clear area</button>
         </div>
+        <canvas id="area" width="700" height="700"></canvas>
+        <p>Draw by mouse, erase by mouse + shift</p>
+
         <script>
             //vars
-            let areaSizeX = 100;
-            let areaSizeY = 50;
-            let cellSize = 8;
+            let areaSizeX = 150;
+            let areaSizeY = 70;
+            let cellSize = 10;
             let speed = 50;
             let timer = null;
             let isPlaying = false;
@@ -226,7 +216,6 @@
                 mouseHandler(e);
             };
             function mouseHandler(e) {
-                console.log(e);
                 let cell = getCoordsOfCell(e.offsetX, e.offsetY);
                 firstGeneration[cell.y][cell.x] = e.shiftKey ? 0 : 1;
                 renderArea(firstGeneration);
@@ -248,7 +237,12 @@
                 context.fillStyle = "black";
                 context.fillRect(x, y, cellSize, cellSize);
                 context.fillStyle = alive ? "#900" : "#eee";
-                context.fillRect(x + 0.5, y + 0.5, cellSize - 1, cellSize - 1);
+                context.fillRect(
+                    x + 0.3,
+                    y + 0.3,
+                    cellSize - 0.6,
+                    cellSize - 0.6
+                );
             }
             function getCoordsOfCell(x, y) {
                 return {
