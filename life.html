@@ -95,6 +95,14 @@
                 background-color: #040;
             }
 
+            .random {
+                background-color: #006;
+            }
+
+            .random:hover {
+                background-color: #004;
+            }
+
             canvas {
                 border: 1px solid #000;
                 background-color: #ddd;
@@ -116,12 +124,13 @@
         <div class="buttons">
             <button class="btn clear">Clear area</button>
             <button class="btn play">Play/stop</button>
+            <button class="btn random">Randomize</button>
         </div>
         <script>
             //vars
-            let areaSizeX = 60;
-            let areaSizeY = 40;
-            let cellSize = 11;
+            let areaSizeX = 100;
+            let areaSizeY = 50;
+            let cellSize = 8;
             let speed = 50;
             let timer = null;
             let isPlaying = false;
@@ -165,15 +174,16 @@
             const next = document.querySelector(".next");
             const clear = document.querySelector(".clear");
             const play = document.querySelector(".play");
+            const random = document.querySelector(".random");
 
             //main arrays
-            const firstGeneration = JSON.parse(
+            let firstGeneration = JSON.parse(
                 JSON.stringify(
                     new Array(areaSizeY).fill(new Array(areaSizeX).fill(0))
                 )
             );
 
-            const secondGeneration = JSON.parse(
+            let secondGeneration = JSON.parse(
                 JSON.stringify(
                     new Array(areaSizeY).fill(new Array(areaSizeX).fill(0))
                 )
@@ -201,6 +211,9 @@
                 }
                 renderArea(firstGeneration);
                 stopLife();
+            };
+            random.onclick = () => {
+                randomize();
             };
             play.onclick = () => {
                 if (isPlaying) {
@@ -309,6 +322,15 @@
             function stopLife() {
                 isPlaying = false;
                 clearInterval(timer);
+            }
+            function randomize() {
+                firstGeneration = firstGeneration.map((item) =>
+                    item.map((value) => randomInteger(0, 1))
+                );
+                renderArea(firstGeneration);
+            }
+            function randomInteger(min, max) {
+                return Math.floor(min + Math.random() * (max + 1 - min));
             }
         </script>
     </body>
