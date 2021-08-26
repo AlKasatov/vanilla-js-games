@@ -9,7 +9,6 @@
             * {
                 box-sizing: border-box;
             }
-
             body {
                 background: #313131;
                 color: bisque;
@@ -17,7 +16,6 @@
                 margin: 0;
                 padding: 10px;
             }
-
             .btn {
                 color: white;
                 padding: 10px;
@@ -28,12 +26,10 @@
                 display: block;
                 margin: 0 auto;
             }
-
             p {
                 font-size: 18px;
                 text-align: center;
             }
-
             .title {
                 text-align: center;
                 font-size: 36px;
@@ -43,15 +39,12 @@
                 display: block;
                 color: inherit;
             }
-
             .title:visited {
                 color: inherit;
             }
-
             .title:hover {
                 color: beige;
             }
-
             .buttons {
                 display: flex;
                 justify-content: space-between;
@@ -59,39 +52,30 @@
                 margin: 20px auto 30px;
                 max-width: 600px;
             }
-
             .clear {
                 background-color: #900;
             }
-
             .clear:hover {
                 background-color: #700;
             }
-
             .play {
                 background-color: #060;
             }
-
             .play:hover {
                 background-color: #040;
             }
-
             .random {
                 background-color: #006;
             }
-
             .random:hover {
                 background-color: #004;
             }
-
             .next {
                 background-color: #606;
             }
-
             .next:hover {
                 background-color: #404;
             }
-
             canvas {
                 border: 1px solid #000;
                 background-color: #ddd;
@@ -100,7 +84,6 @@
             }
         </style>
     </head>
-
     <body>
         <a
             class="title"
@@ -117,15 +100,27 @@
         <p>Draw by mouse, erase by mouse + shift</p>
 
         <script>
+            //elements
+            const canvas = document.querySelector("#area");
+            const next = document.querySelector(".next");
+            const clear = document.querySelector(".clear");
+            const play = document.querySelector(".play");
+            const random = document.querySelector(".random");
             //vars
-            let areaSizeX = 150;
-            let areaSizeY = 70;
-            let cellSize = 10;
-            let speed = 50;
             let timer = null;
             let isPlaying = false;
             let mouseIsPushed = false;
-            const coords = [
+            //constants
+            const context = canvas.getContext("2d");
+            const ALIVE_CELL_COLOR = "#900";
+            const DEAD_CELL_COLOR = "#eee";
+            const CELL_BORDER_COLOR = "black";
+            const CELL_BORDER_WIDTH = 0.3;
+            const AREA_SIZE_X = 150;
+            const AREA_SIZE_Y = 70;
+            const CELL_SIZE = 10;
+            const SPEED = 50;
+            const COORDS = [
                 { x: 1, y: 1 },
                 { x: 1, y: -1 },
                 { x: 1, y: 0 },
@@ -135,7 +130,7 @@
                 { x: -1, y: -1 },
                 { x: -1, y: 0 },
             ];
-            const cellsActions = {
+            const CELL_ACTIONS = {
                 1: {
                     0: die,
                     1: die,
@@ -159,47 +154,37 @@
                     8: noChange,
                 },
             };
-            //elements
-            let canvas = document.querySelector("#area");
-            const next = document.querySelector(".next");
-            const clear = document.querySelector(".clear");
-            const play = document.querySelector(".play");
-            const random = document.querySelector(".random");
-
-            //main arrays
-            let firstGeneration = JSON.parse(
+            const PARENT_GENERATION = JSON.parse(
                 JSON.stringify(
-                    new Array(areaSizeY).fill(new Array(areaSizeX).fill(0))
+                    new Array(AREA_SIZE_Y).fill(new Array(AREA_SIZE_X).fill(0))
                 )
             );
-
-            let secondGeneration = JSON.parse(
+            const CHILDREN_GENERATION = JSON.parse(
                 JSON.stringify(
-                    new Array(areaSizeY).fill(new Array(areaSizeX).fill(0))
+                    new Array(AREA_SIZE_Y).fill(new Array(AREA_SIZE_X).fill(0))
                 )
             );
 
             //init
-            canvas.setAttribute("width", areaSizeX * cellSize);
-            canvas.setAttribute("height", areaSizeY * cellSize);
-            let context = canvas.getContext("2d");
+            canvas.setAttribute("width", AREA_SIZE_X * CELL_SIZE);
+            canvas.setAttribute("height", AREA_SIZE_Y * CELL_SIZE);
 
             lifeCycle();
-            renderArea(secondGeneration);
+            renderArea(CHILDREN_GENERATION);
 
             //handlers
             next.onclick = () => {
                 stopLife();
                 lifeCycle();
-                renderArea(secondGeneration);
+                renderArea(CHILDREN_GENERATION);
             };
             clear.onclick = () => {
-                for (let i = 0; i < firstGeneration.length; i++) {
-                    for (let k = 0; k < firstGeneration[i].length; k++) {
-                        firstGeneration[i][k] = 0;
+                for (let i = 0; i < PARENT_GENERATION.length; i++) {
+                    for (let k = 0; k < PARENT_GENERATION[i].length; k++) {
+                        PARENT_GENERATION[i][k] = 0;
                     }
                 }
-                renderArea(firstGeneration);
+                renderArea(PARENT_GENERATION);
                 stopLife();
             };
             random.onclick = () => {
@@ -215,11 +200,6 @@
             canvas.onclick = (e) => {
                 mouseHandler(e);
             };
-            function mouseHandler(e) {
-                let cell = getCoordsOfCell(e.offsetX, e.offsetY);
-                firstGeneration[cell.y][cell.x] = e.shiftKey ? 0 : 1;
-                renderArea(firstGeneration);
-            }
             canvas.onmousedown = (e) => {
                 mouseIsPushed = true;
             };
@@ -233,95 +213,100 @@
             };
 
             //functions
+            function mouseHandler(e) {
+                let cell = getCoordsOfCell(e.offsetX, e.offsetY);
+                PARENT_GENERATION[cell.y][cell.x] = e.shiftKey ? 0 : 1;
+                renderArea(PARENT_GENERATION);
+            }
             function drawCell(x, y, alive) {
-                context.fillStyle = "black";
-                context.fillRect(x, y, cellSize, cellSize);
-                context.fillStyle = alive ? "#900" : "#eee";
+                context.fillStyle = CELL_BORDER_COLOR;
+                context.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+                context.fillStyle = alive ? ALIVE_CELL_COLOR : DEAD_CELL_COLOR;
                 context.fillRect(
-                    x + 0.3,
-                    y + 0.3,
-                    cellSize - 0.6,
-                    cellSize - 0.6
+                    x + CELL_BORDER_WIDTH,
+                    y + CELL_BORDER_WIDTH,
+                    CELL_SIZE - CELL_BORDER_WIDTH * 2,
+                    CELL_SIZE - CELL_BORDER_WIDTH * 2
                 );
             }
             function getCoordsOfCell(x, y) {
                 return {
-                    x: parseInt(x / cellSize),
-                    y: parseInt(y / cellSize),
+                    x: parseInt(x / CELL_SIZE),
+                    y: parseInt(y / CELL_SIZE),
                 };
             }
             function renderArea(area) {
                 for (let i = 0; i < area.length; i++) {
                     for (let k = 0; k < area[i].length; k++) {
-                        drawCell(k * cellSize, i * cellSize, !!area[i][k]);
+                        drawCell(k * CELL_SIZE, i * CELL_SIZE, !!area[i][k]);
                     }
                 }
-                if (area === secondGeneration) {
-                    for (let i = 0; i < firstGeneration.length; i++) {
-                        for (let k = 0; k < firstGeneration[i].length; k++) {
-                            firstGeneration[i][k] = secondGeneration[i][k];
-                            secondGeneration[i][k] = 0;
+                if (area === CHILDREN_GENERATION) {
+                    for (let i = 0; i < PARENT_GENERATION.length; i++) {
+                        for (let k = 0; k < PARENT_GENERATION[i].length; k++) {
+                            PARENT_GENERATION[i][k] = CHILDREN_GENERATION[i][k];
+                            CHILDREN_GENERATION[i][k] = 0;
                         }
                     }
                 }
             }
-
             function die(x, y) {
-                secondGeneration[y][x] = 0;
+                CHILDREN_GENERATION[y][x] = 0;
             }
             function born(x, y) {
-                secondGeneration[y][x] = 1;
+                CHILDREN_GENERATION[y][x] = 1;
             }
             function noChange() {
                 return;
             }
-
             function lifeCycle() {
-                for (let i = 0; i < firstGeneration.length; i++) {
-                    for (let k = 0; k < firstGeneration[i].length; k++) {
-                        secondGeneration[i][k] = firstGeneration[i][k];
+                for (let i = 0; i < PARENT_GENERATION.length; i++) {
+                    for (let k = 0; k < PARENT_GENERATION[i].length; k++) {
+                        CHILDREN_GENERATION[i][k] = PARENT_GENERATION[i][k];
                     }
                 }
-                for (let i = 0; i < firstGeneration.length; i++) {
-                    for (let k = 0; k < firstGeneration[i].length; k++) {
+                for (let i = 0; i < PARENT_GENERATION.length; i++) {
+                    for (let k = 0; k < PARENT_GENERATION[i].length; k++) {
                         let neighbors = 0;
-                        for (let n = 0; n < coords.length; n++) {
+                        for (let n = 0; n < COORDS.length; n++) {
                             if (
-                                firstGeneration?.[i + coords?.[n]?.y]?.[
-                                    k + coords?.[n]?.x
+                                PARENT_GENERATION?.[i + COORDS?.[n]?.y]?.[
+                                    k + COORDS?.[n]?.x
                                 ]
                             ) {
                                 if (
-                                    firstGeneration[i + coords[n].y][
-                                        k + coords[n].x
+                                    PARENT_GENERATION[i + COORDS[n].y][
+                                        k + COORDS[n].x
                                     ] === 1
                                 ) {
                                     neighbors += 1;
                                 }
                             }
                         }
-                        cellsActions[firstGeneration[i][k]][neighbors](k, i);
+                        CELL_ACTIONS[PARENT_GENERATION[i][k]][neighbors](k, i);
                         neighbors = 0;
                     }
                 }
             }
-
             function playLife() {
                 isPlaying = true;
                 timer = setInterval(() => {
                     lifeCycle();
-                    renderArea(secondGeneration);
-                }, speed);
+                    renderArea(CHILDREN_GENERATION);
+                }, SPEED);
             }
             function stopLife() {
                 isPlaying = false;
                 clearInterval(timer);
             }
             function randomize() {
-                firstGeneration = firstGeneration.map((item) =>
-                    item.map((value) => randomInteger(0, 1))
-                );
-                renderArea(firstGeneration);
+                PARENT_GENERATION.forEach((item, indexY, arr) => {
+                    item.forEach((value, indexX) => {
+                        console.log(value);
+                        arr[indexY][indexX] = randomInteger(0, 1);
+                    });
+                });
+                renderArea(PARENT_GENERATION);
             }
             function randomInteger(min, max) {
                 return Math.floor(min + Math.random() * (max + 1 - min));
