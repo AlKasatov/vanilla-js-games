@@ -17,13 +17,32 @@
             document.body.style.overflow = 'hidden'
             document.querySelector('*').style.userSelect = 'none';
 
+            //container
+            const container = document.createElement('div')
+            container.style.position = 'absolute'
+            container.style.transform = 'translate(-50%, -50%)'
+            container.style.top = '50%'
+            container.style.left = '50%'
+
             //start button
             const start = document.createElement('button')
             start.textContent = 'Start game!'
-            start.style.position = 'absolute'
-            start.style.transform = 'translate(-50%, -50%)'
-            start.style.top = '50%'
-            start.style.left = '50%'
+
+             //game controls info
+            const gameControlsInfo = document.createElement('div')
+            gameControlsInfo.style.color = 'white'
+            gameControlsInfo.style.fontSize = '12px'
+            gameControlsInfo.style.textAlign = 'center'
+            gameControlsInfo.style.marginTop = '10px'
+            gameControlsInfo.innerHTML = `
+                <div>gesture or key:</div>
+                <div>&larr; left</div>
+                <div>&rarr; right</div>
+                <div>&darr; down</div>
+                <div>&uarr; rotate   </div>
+                <div>tap or space key - pause/resume</div>
+            `
+       
             start.style.cursor = 'pointer'
             start.style.padding = '20px'
             start.style.textAlign = 'center'
@@ -31,8 +50,20 @@
             start.style.fontFamily = 'sans-serif'
             start.style.backgroundColor = 'white'
             start.setAttribute('tabindex', 1)
-            document.body.appendChild(start)
+            container.appendChild(start)
+            container.appendChild(gameControlsInfo)
+            document.body.appendChild(container)
             start.focus()
+
+           
+            /*
+            gesture or key
+            &larr; left
+            &rarr; right
+            &darr; down
+            &uarr; rotate   
+            tap or space key - pause/resume
+            */
 
             function setSizeOfCanvas() {
                 setTimeout(function () {
@@ -549,7 +580,7 @@
             //init
             setSizeOfCanvas()
             start.onclick = () => {
-                start.style.display = 'none'
+                container.style.display = 'none'
                 document.body.appendChild(canvas)
                 t.renderField(t.context)
                 t.startGame()
