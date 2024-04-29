@@ -581,9 +581,11 @@
                 }
                 //touch controls
                 canvas.ontouchstart = (e) => {
+                    e.preventDefault()
                     let x = e.touches[0].screenX
                     let y = e.touches[0].screenY
                     canvas.ontouchend = (e) => {
+                        e.preventDefault()
                         let xEnd = e.changedTouches[0].screenX
                         let yEnd = e.changedTouches[0].screenY
                         if ((xEnd - 10) > x && yEnd < (y + 40) && yEnd > (y - 40)) {
