@@ -551,10 +551,9 @@
             start.onclick = () => {
                 start.style.display = 'none'
                 document.body.appendChild(canvas)
-                canvas.requestFullscreen().catch(() => { })
                 t.renderField(t.context)
                 t.startGame()
-                //keyboard controls
+                //keyboard controls`
                 document.onkeydown = (e) => {
                     if (e.keyCode === 37) {
                         t.left()
@@ -582,7 +581,6 @@
                 }
                 //touch controls
                 canvas.ontouchstart = (e) => {
-                    canvas.requestFullscreen().catch(() => { })
                     let x = e.touches[0].screenX
                     let y = e.touches[0].screenY
                     canvas.ontouchend = (e) => {
